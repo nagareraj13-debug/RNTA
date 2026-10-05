@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#050508">
+    <title>RNTA Admin Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050508; color: #fff; overflow-x: hidden; display: flex; }
+
+        /* Background Effects */
+        .bg-glow { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 100vw; max-width: 800px; height: 600px; background: radial-gradient(circle, rgba(0, 176, 155, 0.1) 0%, rgba(0, 242, 254, 0.05) 40%, transparent 70%); z-index: -1; filter: blur(50px); pointer-events: none; }
+
+        /* Master Login Overlay */
+        #adminLoginOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #050508; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: rgba(15, 15, 20, 0.95); padding: 40px 30px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center; border: 1px solid rgba(0, 242, 254, 0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
+        .login-box h2 { color: #ff004c; font-weight: 800; margin-bottom: 5px; letter-spacing: 1px; }
+        .login-box p { color: #888; font-size: 13px; margin-bottom: 25px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: white; outline: none; font-size: 15px; transition: 0.3s; }
+        .input-group input:focus { border-color: #ff004c; }
+        .btn-red { background: linear-gradient(45deg, #ff004c, #ff4757); border: none; color: white; width: 100%; padding: 14px; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-red:hover { box-shadow: 0 5px 20px rgba(255, 0, 76, 0.4); transform: translateY(-2px); }
+        .error-msg { color: #ff4757; font-size: 12px; margin-top: -10px; margin-bottom: 15px; display: none; }
+
+        /* Sidebar Navigation (Mobile Responsive) */
+        .sidebar { width: 260px; height: 100vh; background: #0a0a0f; border-right: 1px solid rgba(255,255,255,0.05); padding: 25px 20px; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 1000; transition: left 0.3s ease; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .sidebar .logo { font-size: 28px; font-weight: 900; letter-spacing: 2px; background: linear-gradient(90deg, #b000ff, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .close-sidebar { display: none; font-size: 28px; color: #888; cursor: pointer; border: none; background: none; }
+        
+        .nav-links { display: flex; flex-direction: column; gap: 10px; }
+        .nav-link { padding: 12px 15px; border-radius: 10px; color: #888; text-decoration: none; font-weight: 600; font-size: 15px; transition: 0.3s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: rgba(0, 242, 254, 0.1); color: #00f2fe; border-left: 3px solid #00f2fe; }
+        .logout-btn { margin-top: auto; padding: 12px; text-align: center; color: #ff4757; background: rgba(255, 71, 87, 0.1); border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .logout-btn:hover { background: #ff4757; color: white; }
+
+        /* Main Content */
+        .main-content { margin-left: 260px; padding: 20px 40px; width: calc(100% - 260px); display: none; transition: 0.3s; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .menu-btn { display: none; font-size: 28px; color: #fff; cursor: pointer; background: none; border: none; }
+        .topbar h1 { font-size: 24px; font-weight: 800; }
+        .admin-profile { display: flex; align-items: center; gap: 12px; }
+        .admin-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(45deg, #00f2fe, #b000ff); display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 16px; color: white; }
+
+        /* Metrics Cards */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; backdrop-filter: blur(10px); }
+        .card-title { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .card-value { font-size: 32px; font-weight: 900; color: #fff; }
+        .green-text { color: #00ff88; } .blue-text { color: #00f2fe; } .yellow-text { color: #ffbd2e; }
+
+        /* Data Tables & Sections */
+        .section-panel { display: none; } /* Used for tab switching */
+        .section-panel.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .table-container { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+        .table-container h3 { margin-bottom: 15px; font-weight: 600; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        
+        /* 🔥 Mobile Responsive Table 🔥 */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { text-align: left; padding: 12px 10px; color: #888; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        td { padding: 12px 10px; font-size: 13px; color: #ddd; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .empty-state { text-align: center; padding: 30px; color: #666; font-size: 14px; font-style: italic; }
+
+        /* Client Messaging Interface */
+        .message-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .msg-list { border-right: 1px solid rgba(255,255,255,0.05); padding-right: 20px; max-height: 400px; overflow-y: auto; }
+        .msg-reply-box { display: flex; flex-direction: column; gap: 15px; }
+        textarea { width: 100%; height: 120px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; color: white; outline: none; font-size: 14px; resize: none; }
+        textarea:focus { border-color: #00f2fe; }
+        .btn-reply { background: #00f2fe; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .sidebar { left: -260px; /* Hidden by default on mobile */ }
+            .sidebar.open { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
+            .close-sidebar { display: block; }
+            .main-content { margin-left: 0; width: 100%; padding: 20px 15px; }
+            .menu-btn { display: block; margin-right: 15px; }
+            .topbar { justify-content: flex-start; }
+            .topbar h1 { font-size: 20px; margin-right: auto; }
+            .admin-profile div:first-child { display: none; /* Hide name on small screens */ }
+            .message-grid { grid-template-columns: 1fr; }
+            .msg-list { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); padding-right: 0; padding-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+
+    <!-- 🔥 MASTER SECURITY LOGIN 🔥 -->
+    <div id="adminLoginOverlay">
+        <div class="login-box">
+            <h2>RESTRICTED</h2>
+            <p>Admin Control Panel</p>
+            <div class="input-group">
+                <input type="password" id="masterPass" placeholder="Enter Master Password">
+            </div>
+            <div id="passError" class="error-msg">Incorrect Password. Access Denied.</div>
+            <button class="btn-red" onclick="verifyAdmin()">Authenticate</button>
+        </div>
+    </div>
+
+    <!-- 🔥 SIDEBAR (Responsive) 🔥 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">RNTA</div>
+            <button class="close-sidebar" onclick="toggleSidebar()">&times;</button>
+        </div>
+        <div class="nav-links">
+            <a class="nav-link active" onclick="switchTab('dashboard', this)">Dashboard Metrics</a>
+            <a class="nav-link" onclick="switchTab('users', this)">Registered Users</a>
+            <a class="nav-link" onclick="switchTab('messages', this)">Client Messages</a>
+        </div>
+        <div class="logout-btn" onclick="logoutAdmin()">Lock System</div>
+    </div>
+
+    <!-- 🔥 MAIN CONTENT 🔥 -->
+    <div class="main-content" id="mainContent">
+        
+        <div class="topbar">
+            <!-- Hamburger Menu for Mobile -->
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <h1 id="pageTitle">Command Center</h1>
+            <div class="admin-profile">
+                <div style="text-align: right;">
+                    <div style="font-weight: 800; font-size: 14px;">Raj Nagare</div>
+                    <div style="font-size: 11px; color: #00f2fe;">Super Admin</div>
+                </div>
+                <div class="admin-avatar">R</div>
+            </div>
+        </div>
+
+        <!-- ================= 1. DASHBOARD TAB ================= -->
+        <div id="dashboard" class="section-panel active">
+            <!-- Live Data Ready (Currently 0) -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-title">Total Users</div>
+                    <div class="card-value blue-text" id="dbTotalUsers">0</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Client Inquiries</div>
+                    <div class="card-value yellow-text" id="dbTotalMsg">0</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Active Projects</div>
+                    <div class="card-value green-text" id="dbActiveProj">0</div>
+                </div>
+            </div>
+
+            <!-- Recent Activity (Empty State ready for Backend) -->
+            <div class="table-container">
+                <h3>System Logs</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Log ID</th>
+                                <th>Action</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            <tr><td colspan="3" class="empty-state">No recent activity detected. Awaiting backend connection.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 2. USERS TAB ================= -->
+        <div id="users" class="section-panel">
+            <div class="table-container">
+                <h3>Client Database</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Join Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="5" class="empty-state">No users registered yet. Database is empty.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 3. CLIENT MESSAGES TAB (New Feature) ================= -->
+        <div id="messages" class="section-panel">
+            <div class="table-container">
+                <h3>Inbox & Replies</h3>
+                <div class="message-grid">
+                    
+                    <!-- Left: Incoming Messages List -->
+                    <div class="msg-list" id="incomingMessages">
+                        <div class="empty-state" style="margin-top: 50px;">No messages from clients via dashboard yet.</div>
+                        <!-- Backend will inject messages here. Example structure:
+                        <div style="padding: 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 10px; cursor: pointer;">
+                            <strong style="color: #00f2fe;">Client Name</strong><br>
+                            <span style="font-size: 12px; color: #888;">Issue with project upload...</span>
+                        </div>
+                        -->
+                    </div>
+
+                    <!-- Right: Reply Box -->
+                    <div class="msg-reply-box">
+                        <div style="font-size: 13px; color: #888;">Select a message from the list to reply.</div>
+                        <input type="text" placeholder="To: Client Email (Auto-filled)" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;" readonly>
+                        <textarea placeholder="Type your reply here..."></textarea>
+                        <button class="btn-reply">Send Reply to Client</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Security / Authentication ---
+        function verifyAdmin() {
+            const pass = document.getElementById('masterPass').value;
+            const error = document.getElementById('passError');
+            
+            // Current Dev Password -> Raj@123
+            if(pass === 'Raj@123') {
+                document.getElementById('adminLoginOverlay').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            } else {
+                error.style.display = 'block';
+                setTimeout(() => { error.style.display = 'none'; }, 3000);
+            }
+        }
+
+        document.getElementById('masterPass').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verifyAdmin();
+        });
+
+        function logoutAdmin() {
+            document.getElementById('masterPass').value = '';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('adminLoginOverlay').style.display = 'flex';
+            // Also close sidebar on mobile when locking
+            document.getElementById('sidebar').classList.remove('open');
+        }
+
+        // --- Mobile Sidebar Toggle ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // --- Tab Switching Logic ---
+        function switchTab(tabId, element) {
+            // Hide all panels
+            const panels = document.querySelectorAll('.section-panel');
+            panels.forEach(panel => panel.classList.remove('active'));
+            
+            // Remove active class from all links
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => link.classList.remove('active'));
+
+            // Show selected panel & highlight link
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+
+            // Update Topbar Title
+            const titles = {
+                'dashboard': 'Command Center',
+                'users': 'Client Database',
+                'messages': 'Client Comms & Support'
+            };
+            document.getElementById('pageTitle').innerText = titles[tabId];
+
+            // Auto-close sidebar on mobile after clicking a link
+            if(window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        }
+    </script>
+
+</body>
+</html>

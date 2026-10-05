@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 🔥 Mobile Browser Theme Color Fix 🔥 -->
+    <meta name="theme-color" content="#050508">
+    
+    <title>RNTA | Raj Nagare Tech</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body, html { background-color: #050508; color: #ffffff; overflow-x: hidden; width: 100%; }
+
+        /* 3D Grid Background */
+        .grid-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: -2;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: gridMove 10s linear infinite;
+        }
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); }
+        }
+
+        .bg-glow {
+            position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+            width: 100vw; max-width: 700px; height: 600px;
+            background: radial-gradient(circle, rgba(0, 176, 155, 0.15) 0%, rgba(0, 242, 254, 0.1) 40%, transparent 70%);
+            z-index: -1; filter: blur(50px);
+        }
+
+        /* Navbar */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; background: rgba(5, 5, 8, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100;
+        }
+        @keyframes rotateGlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .logo-container { position: relative; padding: 5px 15px; border-radius: 12px; overflow: hidden; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; user-select: none; }
+        .logo-container::before { content: ''; position: absolute; top: -100%; left: -100%; width: 300%; height: 300%; background: conic-gradient(transparent, transparent, transparent, #ff004c); animation: rotateGlow 1.5s linear infinite; opacity: 0; transition: opacity 0.2s; z-index: 0; }
+        .logo-container:active::before { opacity: 1; }
+        .logo-container::after { content: ''; position: absolute; inset: 2px; background: #050508; border-radius: 10px; z-index: 1; }
+        .logo { font-size: clamp(28px, 6vw, 36px); font-weight: 900; letter-spacing: 2px; background: linear-gradient(90deg, #b000ff, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; z-index: 2; position: relative; }
+
+        .nav-login-btn { position: relative; padding: 10px 25px; border-radius: 30px; overflow: hidden; cursor: pointer; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-weight: 600; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .nav-login-btn::before { content: ''; position: absolute; top: -100%; left: -100%; width: 300%; height: 300%; background: conic-gradient(transparent, transparent, transparent, #00ff88); animation: rotateGlow 1.5s linear infinite; opacity: 0; transition: opacity 0.2s; z-index: 0; }
+        .nav-login-btn:active::before { opacity: 1; }
+        .nav-login-btn::after { content: ''; position: absolute; inset: 2px; background: #050508; border-radius: 28px; z-index: 1; }
+        .nav-login-btn span { z-index: 2; position: relative; }
+        .nav-login-btn:hover { background: rgba(255,255,255,0.1); border-color: #00f2fe; }
+
+        /* Hero */
+        .btn-green-blue { border: none; padding: 16px 45px; border-radius: 30px; font-weight: 800; cursor: pointer; font-size: 18px; background: linear-gradient(45deg, #00b09b, #00f2fe); color: #000; box-shadow: 0 5px 20px rgba(0, 242, 254, 0.4); transition: 0.3s; }
+        .btn-green-blue:hover { box-shadow: 0 5px 30px rgba(0, 242, 254, 0.6); transform: translateY(-2px); }
+        
+        .hero { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px 5%; position: relative; }
+        .hero h1 { font-size: clamp(35px, 8vw, 70px); font-weight: 900; line-height: 1.1; margin-bottom: 20px; }
+        .hero span { background: linear-gradient(90deg, #00b09b, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 30px rgba(0, 242, 254, 0.3); }
+        .hero p { font-size: clamp(14px, 4vw, 18px); color: #888; margin-bottom: 40px; max-width: 600px; }
+
+        /* 🔥 MARQUEE TICKER 🔥 */
+        .marquee-wrapper { width: 100%; overflow: hidden; background: rgba(0,0,0,0.5); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 15px 0; margin-bottom: 50px; position: relative; z-index: 10; }
+        .marquee-content { display: flex; width: 200%; animation: scrollMarquee 15s linear infinite; }
+        .marquee-content span { flex: 1; text-align: center; font-size: 14px; font-weight: 800; color: #00f2fe; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; }
+        @keyframes scrollMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* 🔥 HACKER TERMINAL BOX 🔥 */
+        .terminal-box { background: rgba(10, 10, 15, 0.85); border: 1px solid rgba(0, 242, 254, 0.3); width: 90%; max-width: 650px; margin: 0 auto 60px; border-radius: 10px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0, 242, 254, 0.05); position: relative; z-index: 10; backdrop-filter: blur(10px); }
+        .terminal-header { display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+        .terminal-text { font-family: 'Courier New', Courier, monospace; color: #00ff88; font-size: 14px; line-height: 1.6; min-height: 80px; }
+        .cursor { display: inline-block; width: 8px; height: 15px; background: #00ff88; animation: blink 1s step-end infinite; vertical-align: middle; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* 🔥 METRICS CONTAINER 🔥 */
+        .metrics-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 40px; margin-bottom: 60px; position: relative; z-index: 10; padding: 0 5%; }
+        .metric { text-align: center; }
+        .metric-number { font-size: 45px; font-weight: 900; color: #fff; text-shadow: 0 0 20px #b000ff; margin-bottom: 5px; }
+        .metric-label { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* 🔥 EXCLUSIVE BUILDS (PROJECTS GRID) 🔥 */
+        .projects-wrapper { padding: 0 5% 80px; position: relative; z-index: 10; }
+        .section-title { text-align: center; font-size: 28px; font-weight: 800; margin-bottom: 40px; color: #fff; }
+        .section-title span { color: #00f2fe; }
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+        .project-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 30px 20px; transition: all 0.4s ease; backdrop-filter: blur(10px); cursor: default; }
+        .project-card:hover { border-color: #00f2fe; background: rgba(0, 242, 254, 0.05); transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px rgba(0, 242, 254, 0.2); }
+        .project-card h3 { font-size: 20px; margin-bottom: 10px; color: #fff; }
+        .project-card p { font-size: 13px; color: #888; line-height: 1.5; margin-bottom: 15px; }
+        .project-tag { display: inline-block; padding: 5px 12px; background: rgba(112, 0, 255, 0.2); color: #b000ff; border-radius: 20px; font-size: 11px; font-weight: 800; }
+
+        /* ================= MODAL CSS ================= */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(15px); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
+        .login-box { background: rgba(15, 15, 20, 0.95); padding: 40px 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.1); position: relative; transform: scale(0.9) translateY(30px); transition: all 0.4s; overflow: hidden; }
+        .login-box::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, #00f2fe); animation: rotateGlow 4s linear infinite; z-index: -1; opacity: 0.5; }
+        .login-box::after { content: ''; position: absolute; inset: 2px; background: #0a0a0f; border-radius: 18px; z-index: -1; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #666; cursor: pointer; transition: 0.3s; z-index: 10; }
+        .close-btn:hover { color: #fff; transform: rotate(90deg); }
+        .login-box h2 { margin-bottom: 5px; font-weight: 800; font-size: 26px; color: #00f2fe; position: relative; z-index: 2; }
+        .modal-subtitle { font-size: 13px; color: #888; margin-bottom: 25px; position: relative; z-index: 2; }
+
+        .input-group { position: relative; margin-bottom: 15px; text-align: left; z-index: 2; }
+        .input-group input { width: 100%; padding: 15px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: white; outline: none; font-size: 14px; transition: 0.3s; }
+        .input-group input:focus { border-color: #00f2fe; background: rgba(0,242,254,0.05); }
+
+        /* 🔥 CUSTOM RED ALERT ERROR (NO POPUP) 🔥 */
+        .error-alert { display: none; background: rgba(255, 95, 86, 0.12); border-left: 3px solid #ff5f56; color: #ff5f56; padding: 10px 12px; border-radius: 6px; font-size: 12px; text-align: left; margin-bottom: 15px; font-weight: 500; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .switch-text { margin-top: 20px; font-size: 13px; color: #888; position: relative; z-index: 2; }
+        .switch-text a { color: #00f2fe; font-weight: bold; cursor: pointer; text-decoration: none; }
+
+        /* 🔥 GOOGLE BUTTON 🔥 */
+        .google-btn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); width: 100%; padding: 13px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; z-index: 2; position: relative; margin-top: 15px; }
+        .google-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="grid-bg"></div>
+    <div class="bg-glow"></div>
+
+    <nav>
+        <div class="logo-container">
+            <div class="logo">RNTA</div>
+        </div>
+        <button class="nav-login-btn" onclick="openLogin()"><span>Login</span></button>
+    </nav>
+
+    <section class="hero">
+        <h1>Build Your<br><span>Digital Future</span></h1>
+        <p>Premium web applications, scalable platforms, and next-gen digital experiences engineered by Raj Nagare.</p>
+        <button class="btn-green-blue" onclick="openLogin()">Start Your Project</button>
+    </section>
+
+    <!-- 1. TECH TICKER -->
+    <div class="marquee-wrapper">
+        <div class="marquee-content">
+            <span>HTML5</span><span>CSS3</span><span>JavaScript</span><span>Node.js</span><span>Express</span><span>Python</span><span>SQLite</span><span>MongoDB</span><span>Linux Server</span>
+            <span>HTML5</span><span>CSS3</span><span>JavaScript</span><span>Node.js</span><span>Express</span><span>Python</span><span>SQLite</span><span>MongoDB</span><span>Linux Server</span>
+        </div>
+    </div>
+
+    <!-- 2. HACKER TERMINAL BOX -->
+    <div class="terminal-box">
+        <div class="terminal-header">
+            <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+        </div>
+        <span class="terminal-text" id="typewriter"></span><span class="cursor"></span>
+    </div>
+
+    <!-- 3. LIVE METRICS -->
+    <div class="metrics-container">
+        <div class="metric"><div class="metric-number" data-target="15">0</div><div class="metric-label">Projects Delivered</div></div>
+        <div class="metric"><div class="metric-number" data-target="100">0</div><div class="metric-label">Secure & Live</div></div>
+        <div class="metric"><div class="metric-number" data-target="24">0</div><div class="metric-label">Premium Support</div></div>
+    </div>
+
+    <!-- 4. ALL 4 EXCLUSIVE PROJECTS -->
+    <div class="projects-wrapper">
+        <h2 class="section-title">Exclusive <span>Builds</span></h2>
+        <div class="projects-grid">
+            <div class="project-card">
+                <h3>Student Complaint Box</h3>
+                <p>A full-stack, secure platform for students to raise issues directly to authorities with real-time status tracking.</p>
+                <div class="project-tag">Web App / Node.js</div>
+            </div>
+            <div class="project-card">
+                <h3>Criminal Identity Bot</h3>
+                <p>Advanced OSINT tool built on Telegram for rapid data gathering, intelligence, and secure information tracking.</p>
+                <div class="project-tag">Python / OSINT</div>
+            </div>
+            <div class="project-card">
+                <h3>Agentic AI Ruhi</h3>
+                <p>Highly intelligent, autonomous conversational AI system designed for human-like interaction, contextual reasoning, and task automation.</p>
+                <div class="project-tag">AI / Automation</div>
+            </div>
+            <div class="project-card">
+                <h3>Tactical SOS & Tracking</h3>
+                <p>Real-time secure web portal synced with emergency wearable safety devices for live GPS tracking and instant automated alerts.</p>
+                <div class="project-tag">IoT / Security</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔥 MODAL OVERLAY 🔥 -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="login-box" id="loginBox">
+            <span class="close-btn" onclick="closeLogin()">&times;</span>
+            
+            <h2 id="modalTitle">Welcome Back</h2>
+            <p class="modal-subtitle" id="modalSubtitle">Secure client authentication</p>
+
+            <div style="position: relative; z-index: 2;">
+                
+                <!-- LOGIN FORM -->
+                <div id="loginState">
+                    <div class="input-group">
+                        <input type="tel" id="loginPhone" maxlength="10" placeholder="Mobile Number (10 Digits)">
+                    </div>
+                    <!-- Red Alert Box -->
+                    <div id="loginError" class="error-alert">⚠ Krupaya ek valid 10-digit mobile number taka.</div>
+                </div>
+
+                <!-- SIGNUP FORM -->
+                <div id="signupState" style="display: none;">
+                    <div class="input-group"><input type="text" id="signupName" placeholder="Full Name"></div>
+                    <div class="input-group"><input type="email" id="signupEmail" placeholder="Email Address"></div>
+                    <div class="input-group"><input type="tel" id="signupMobile" maxlength="10" placeholder="Mobile Number (10 Digits)"></div>
+                    <div class="input-group"><input type="password" id="signupPass" placeholder="Create Password"></div>
+                    <!-- Red Alert Box -->
+                    <div id="signupError" class="error-alert">⚠ Krupaya sarv mahiti ani valid 10-digit number taka.</div>
+                </div>
+
+                <!-- OTP FORM -->
+                <div id="otpState" style="display: none;">
+                    <div class="input-group"><input type="number" id="otpInput" maxlength="4" placeholder="Enter 4-Digit OTP"></div>
+                    <div id="otpError" class="error-alert">⚠ Krupaya valid 4-digit OTP taka.</div>
+                    <p style="font-size:11px; color:#00ff88; margin-bottom:15px; text-align:left;">* Testing Mode: Enter any 4 numbers</p>
+                </div>
+
+            </div>
+            
+            <button class="btn-green-blue" style="width: 100%; padding: 14px; margin-bottom: 5px; position: relative; z-index: 2; border:none;" id="actionBtn" onclick="handleButtonClick()">Send OTP</button>
+            
+            <!-- SOCIAL AUTH -->
+            <div id="socialLoginArea" style="position: relative; z-index: 2;">
+                <div style="font-size: 11px; color: #555; margin-top: 15px;">OR CONTINUE WITH</div>
+                
+                <!-- 🔥 Google Button with Inline SVG Logo (Never breaks) 🔥 -->
+                <button class="google-btn" onclick="triggerGoogleLogin()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                </button>
+                
+                <p class="switch-text" id="toggleText">
+                    New to RNTA? <a onclick="toggleSignup()">Create an account</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔥 GOOGLE LOGIN WITH CHOOSE ACCOUNT POPUP 🔥
+        function triggerGoogleLogin() {
+            const clientId = '72942744488-leu58rc4rdnpnkirq8rbqedl4nhfb9di.apps.googleusercontent.com';
+            const redirectUri = encodeURIComponent('http://localhost:8158/dashboard.html');
+            
+            // prompt=select_account forces the multi-account chooser screen
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=email%20profile&prompt=select_account`;
+            
+            document.getElementById('actionBtn').innerText = "Redirecting to Google...";
+            window.location.href = authUrl;
+        }
+
+        // Modal State Control
+        let currentState = 'login'; 
+
+        function openLogin() {
+            document.getElementById('loginModal').style.display = 'flex';
+            setTimeout(() => { 
+                document.getElementById('loginModal').style.opacity = '1'; 
+                document.getElementById('loginBox').style.transform = 'scale(1) translateY(0)'; 
+            }, 10);
+            resetModal();
+        }
+
+        function closeLogin() {
+            document.getElementById('loginModal').style.opacity = '0'; 
+            document.getElementById('loginBox').style.transform = 'scale(0.9) translateY(30px)';
+            setTimeout(() => { document.getElementById('loginModal').style.display = 'none'; }, 300);
+        }
+
+        function toggleSignup() {
+            hideAllErrors();
+            if (currentState === 'login') {
+                currentState = 'signup';
+                document.getElementById('loginState').style.display = 'none';
+                document.getElementById('otpState').style.display = 'none';
+                document.getElementById('signupState').style.display = 'block';
+                document.getElementById('modalTitle').innerText = "Create Account";
+                document.getElementById('actionBtn').innerText = "Sign Up";
+                document.getElementById('toggleText').innerHTML = 'Already a client? <a onclick="toggleSignup()">Login here</a>';
+            } else {
+                currentState = 'login';
+                document.getElementById('signupState').style.display = 'none';
+                document.getElementById('otpState').style.display = 'none';
+                document.getElementById('loginState').style.display = 'block';
+                document.getElementById('modalTitle').innerText = "Welcome Back";
+                document.getElementById('actionBtn').innerText = "Send OTP";
+                document.getElementById('toggleText').innerHTML = 'New to RNTA? <a onclick="toggleSignup()">Create an account</a>';
+            }
+        }
+
+        function hideAllErrors() {
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('signupError').style.display = 'none';
+            document.getElementById('otpError').style.display = 'none';
+        }
+
+        function handleButtonClick() {
+            hideAllErrors();
+            const phoneRegex = /^[0-9]{10}$/;
+
+            if (currentState === 'login') {
+                const phone = document.getElementById('loginPhone').value.trim();
+                if (!phoneRegex.test(phone)) {
+                    document.getElementById('loginError').style.display = 'block';
+                    return;
+                }
+                
+                currentState = 'otp';
+                document.getElementById('loginState').style.display = 'none';
+                document.getElementById('socialLoginArea').style.display = 'none';
+                document.getElementById('otpState').style.display = 'block';
+                document.getElementById('modalTitle').innerText = "Verify OTP";
+                document.getElementById('modalSubtitle').innerText = "Code sent to " + phone;
+                document.getElementById('actionBtn').innerText = "Verify & Login";
+            } 
+            else if (currentState === 'otp') {
+                const otp = document.getElementById('otpInput').value.trim();
+                if (otp.length >= 4) {
+                    document.getElementById('actionBtn').innerText = "Authenticating...";
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 600);
+                } else {
+                    document.getElementById('otpError').style.display = 'block';
+                }
+            } 
+            else if (currentState === 'signup') {
+                const name = document.getElementById('signupName').value.trim();
+                const phone = document.getElementById('signupMobile').value.trim();
+                const email = document.getElementById('signupEmail').value.trim();
+                const pass = document.getElementById('signupPass').value.trim();
+
+                if (name.length < 2 || email.length < 5 || pass.length < 4 || !phoneRegex.test(phone)) {
+                    document.getElementById('signupError').style.display = 'block';
+                    return;
+                }
+                document.getElementById('actionBtn').innerText = "Creating Account...";
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 600);
+            }
+        }
+
+        function resetModal() {
+            currentState = 'login';
+            document.getElementById('loginState').style.display = 'block';
+            document.getElementById('signupState').style.display = 'none';
+            document.getElementById('otpState').style.display = 'none';
+            document.getElementById('socialLoginArea').style.display = 'block';
+            document.getElementById('loginPhone').value = '';
+            document.getElementById('signupName').value = '';
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupMobile').value = '';
+            document.getElementById('signupPass').value = '';
+            document.getElementById('otpInput').value = '';
+            hideAllErrors();
+            document.getElementById('modalTitle').innerText = "Welcome Back";
+            document.getElementById('modalSubtitle').innerText = "Secure client authentication";
+            document.getElementById('actionBtn').innerText = "Send OTP";
+        }
+
+        // Hacker Terminal Typing Effect
+        const terminalText = ["> Establishing secure connection...", "> Loading RNTA Core Modules...", "> Bypassing client-side latency...", "> System live & fully encrypted."];
+        let lineIdx = 0, charIdx = 0;
+        const twElem = document.getElementById("typewriter");
+        function typeWriter() {
+            if (lineIdx < terminalText.length) {
+                if (charIdx < terminalText[lineIdx].length) {
+                    twElem.innerHTML += terminalText[lineIdx].charAt(charIdx);
+                    charIdx++;
+                    setTimeout(typeWriter, 35);
+                } else {
+                    twElem.innerHTML += "<br>";
+                    lineIdx++;
+                    charIdx = 0;
+                    setTimeout(typeWriter, 400);
+                }
+            }
+        }
+        setTimeout(typeWriter, 600);
+
+        // Live Counters Animation
+        const counters = document.querySelectorAll('.metric-number');
+        counters.forEach(counter => {
+            const updateCount = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText.replace('%', '').replace('+', '');
+                const inc = target / 40;
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + inc);
+                    setTimeout(updateCount, 40);
+                } else {
+                    counter.innerText = target + (target === 100 ? "%" : "+");
+                }
+            };
+            setTimeout(updateCount, 1200);
+        });
+    </script>
+</body>
+</html>
