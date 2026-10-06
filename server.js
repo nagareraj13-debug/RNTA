@@ -6,15 +6,12 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*' })); 
 
-const MONGO_URI = "mongodb+srv://nagareraj13_db_user:RajRNTA2026@cluster0.8yxlwed.mongodb.net/RNTA_DB?retryWrites=true&w=majority";
+// 🔥 TYPO FIXED HERE (byxlwwd instead of 8yxlwed)
+const MONGO_URI = "mongodb+srv://nagareraj13_db_user:RajRNTA2026@cluster0.byxlwwd.mongodb.net/RNTA_DB?retryWrites=true&w=majority&appName=Cluster0";
 
 let dbErrorDetail = "Database connection is initializing... please wait.";
 
-// Connect to MongoDB with IPv4 forced (family: 4) to fix ENOTFOUND DNS Error
-mongoose.connect(MONGO_URI, { 
-    serverSelectionTimeoutMS: 5000,
-    family: 4 // 🔥 Hi setting DNS error 100% fix karel
-})
+mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
     .then(() => { 
         dbErrorDetail = null; 
         console.log("✅ MongoDB Connected Successfully!"); 
@@ -24,7 +21,6 @@ mongoose.connect(MONGO_URI, {
         console.error("❌ DB Error:", err.message); 
     });
 
-// Message Schema
 const messageSchema = new mongoose.Schema({
     clientName: String,
     clientEmail: String,
@@ -34,14 +30,10 @@ const messageSchema = new mongoose.Schema({
 
 const Message = mongoose.model('Message', messageSchema);
 
-// Chat API Route
 app.post('/api/message', async (req, res) => {
     try {
         if (dbErrorDetail) {
-            return res.status(500).json({ 
-                success: false, 
-                message: `DB ERROR: ${dbErrorDetail}` 
-            });
+            return res.status(500).json({ success: false, message: `DB ERROR: ${dbErrorDetail}` });
         }
 
         const newMessage = new Message({
