@@ -256,7 +256,7 @@
         // 🔥 GOOGLE LOGIN WITH CHOOSE ACCOUNT POPUP 🔥
         function triggerGoogleLogin() {
             const clientId = '72942744488-leu58rc4rdnpnkirq8rbqedl4nhfb9di.apps.googleusercontent.com';
-            const redirectUri = encodeURIComponent('http://localhost:8158/dashboard.html');
+            const redirectUri = encodeURIComponent('https://nagareraj13-debug.github.io/RNTA/dashboard.html');
             
             // prompt=select_account forces the multi-account chooser screen
             const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=email%20profile&prompt=select_account`;
@@ -265,7 +265,7 @@
             window.location.href = authUrl;
         }
 
-        // Modal State Control
+         // Modal State Control
         let currentState = 'login'; 
 
         function openLogin() {
