@@ -4,19 +4,22 @@ const cors = require('cors');
 
 const app = express();
 app.use(express.json());
-app.use(cors({ origin: '*' })); // Allows all frontend connections
+app.use(cors({ origin: '*' })); 
 
-// 🚀 HARDCODED MONGO URI - Bypassing Render Environment Variables completely
 const MONGO_URI = "mongodb+srv://nagareraj13_db_user:RajRNTA2026@cluster0.8yxlwed.mongodb.net/RNTA_DB?retryWrites=true&w=majority";
 
-// Connection logic with strict timeout handling
-mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000
-}).then(() => {
-    console.log("✅ MongoDB Connected Successfully to RNTA_DB!");
-}).catch(err => {
-    console.error("❌ MongoDB Connection FATAL Error:", err);
-});
+let dbErrorDetail = "Database connection is initializing... please wait.";
+
+// Connect to MongoDB and capture exact error
+mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
+    .then(() => { 
+        dbErrorDetail = null; 
+        console.log("✅ MongoDB Connected Successfully!"); 
+    })
+    .catch(err => { 
+        dbErrorDetail = err.message; 
+        console.error("❌ DB Error:", err.message); 
+    });
 
 // Message Schema
 const messageSchema = new mongoose.Schema({
@@ -30,12 +33,13 @@ const Message = mongoose.model('Message', messageSchema);
 
 // Chat API Route
 app.post('/api/message', async (req, res) => {
-    console.log("📩 Incoming message request:", req.body);
-    
     try {
-        // Strict DB Connection Check
-        if (mongoose.connection.readyState !== 1) {
-            throw new Error("Database not connected. Render IP might be blocked or URI is wrong.");
+        // If database failed to connect, send the EXACT error to the frontend
+        if (dbErrorDetail) {
+            return res.status(500).json({ 
+                success: false, 
+                message: `DB ERROR: ${dbErrorDetail}` 
+            });
         }
 
         const newMessage = new Message({
@@ -45,18 +49,15 @@ app.post('/api/message', async (req, res) => {
         });
 
         await newMessage.save();
-        console.log("✅ Message saved to DB!");
         res.status(200).json({ success: true, message: "Message saved successfully!" });
         
     } catch (error) {
-        console.error("❌ Error saving message:", error.message);
         res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// Health Check Route
 app.get('/', (req, res) => {
-    res.send("RNTA Backend is Running Live with Hardcoded DB! 🚀");
+    res.send("RNTA Backend is Running Live! 🚀");
 });
 
 const PORT = process.env.PORT || 3000;
