@@ -10,8 +10,11 @@ const MONGO_URI = "mongodb+srv://nagareraj13_db_user:RajRNTA2026@cluster0.8yxlwe
 
 let dbErrorDetail = "Database connection is initializing... please wait.";
 
-// Connect to MongoDB and capture exact error
-mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
+// Connect to MongoDB with IPv4 forced (family: 4) to fix ENOTFOUND DNS Error
+mongoose.connect(MONGO_URI, { 
+    serverSelectionTimeoutMS: 5000,
+    family: 4 // 🔥 Hi setting DNS error 100% fix karel
+})
     .then(() => { 
         dbErrorDetail = null; 
         console.log("✅ MongoDB Connected Successfully!"); 
@@ -34,7 +37,6 @@ const Message = mongoose.model('Message', messageSchema);
 // Chat API Route
 app.post('/api/message', async (req, res) => {
     try {
-        // If database failed to connect, send the EXACT error to the frontend
         if (dbErrorDetail) {
             return res.status(500).json({ 
                 success: false, 
