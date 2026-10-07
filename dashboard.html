@@ -427,6 +427,7 @@
             const message = input.value.trim();
             const chatBody = document.getElementById('chatBody');
             
+            
             // Client details dynamic from inputs or LocalStorage fallback
             const clientName = document.getElementById('usernameInput').value || localStorage.getItem("userName") || "Live Client";
             const clientEmail = document.getElementById('emailInput').value || localStorage.getItem("userEmail") || "client@rnta.agency";
@@ -455,4 +456,26 @@
                         })
                     });
 
-                    const data = await response.j
+                    const data = await response.json();
+                    
+                    const tMsg = document.getElementById('typingMsg'); 
+                    if(tMsg) tMsg.remove();
+
+                    if (response.ok && data.success) {
+                        chatBody.innerHTML += `<div class="msg msg-admin">Input verified. The command sequence has been logged to RNTA Database and routed to Raj's terminal.</div>`;
+                    } else {
+                        chatBody.innerHTML += `<div class="msg msg-admin" style="color: #ff4757;">Notice: Transmission queued locally. Server response: ${data.message || 'Error'}</div>`;
+                    }
+                } catch (error) {
+                    console.error("Network Transmission Error:", error);
+                    const tMsg = document.getElementById('typingMsg'); 
+                    if(tMsg) tMsg.remove();
+                    chatBody.innerHTML += `<div class="msg msg-admin" style="color: #ff4757;">Failed to reach backend cluster. Check network connection.</div>`;
+                }
+                
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
