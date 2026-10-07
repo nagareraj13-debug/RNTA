@@ -6,6 +6,14 @@
     <!-- 🔥 Mobile Browser Theme Color Fix 🔥 -->
     <meta name="theme-color" content="#050508">
     
+    <!-- 🔥 PWA / App Install Tags 🔥 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RNTA Portal">
+    <!-- Note: Tula GitHub var ek 'logo.png' (ideal size 512x512) upload karavi lagel ya favicon sathi -->
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo.png">
+    
     <title>RNTA | Raj Nagare Tech</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     
@@ -253,7 +261,7 @@
     </div>
 
     <script>
-        // 🔥 GOOGLE LOGIN WITH CHOOSE ACCOUNT POPUP 🔥
+    // 🔥 GOOGLE LOGIN WITH CHOOSE ACCOUNT POPUP 🔥
         function triggerGoogleLogin() {
             const clientId = '72942744488-leu58rc4rdnpnkirq8rbqedl4nhfb9di.apps.googleusercontent.com';
             const redirectUri = encodeURIComponent('https://nagareraj13-debug.github.io/RNTA/dashboard.html');
@@ -321,6 +329,9 @@
                     return;
                 }
                 
+                // Store phone for passing to dashboard (Optional LocalStorage implementation)
+                localStorage.setItem("userMobile", phone);
+
                 currentState = 'otp';
                 document.getElementById('loginState').style.display = 'none';
                 document.getElementById('socialLoginArea').style.display = 'none';
@@ -348,6 +359,12 @@
                     document.getElementById('signupError').style.display = 'block';
                     return;
                 }
+                
+                // Store data to pass to dashboard
+                localStorage.setItem("userName", name);
+                localStorage.setItem("userEmail", email);
+                localStorage.setItem("userMobile", phone);
+
                 document.getElementById('actionBtn').innerText = "Creating Account...";
                 setTimeout(() => { window.location.href = 'dashboard.html'; }, 600);
             }
