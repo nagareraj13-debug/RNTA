@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*' })); 
 
-// 🔥 TYPO FIXED HERE (byxlwwd instead of 8yxlwed)
+// MongoDB URI
 const MONGO_URI = "mongodb+srv://nagareraj13_db_user:RajRNTA2026@cluster0.byxlwwd.mongodb.net/RNTA_DB?retryWrites=true&w=majority&appName=Cluster0";
 
 let dbErrorDetail = "Database connection is initializing... please wait.";
@@ -30,11 +30,10 @@ const messageSchema = new mongoose.Schema({
 
 const Message = mongoose.model('Message', messageSchema);
 
+// API: Frontend kadun message ghyayla ani save karayla
 app.post('/api/message', async (req, res) => {
     try {
-        if (dbErrorDetail) {
-            return res.status(500).json({ success: false, message: `DB ERROR: ${dbErrorDetail}` });
-        }
+        if (dbErrorDetail) return res.status(500).json({ success: false, message: `DB ERROR: ${dbErrorDetail}` });
 
         const newMessage = new Message({
             clientName: req.body.clientName || "Ruhi",
@@ -44,7 +43,19 @@ app.post('/api/message', async (req, res) => {
 
         await newMessage.save();
         res.status(200).json({ success: true, message: "Message saved successfully!" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// 🔥 NEW API: Admin panel la live messages dakhvnyasathi 🔥
+app.get('/api/messages', async (req, res) => {
+    try {
+        if (dbErrorDetail) return res.status(500).json({ success: false, message: `DB ERROR: ${dbErrorDetail}` });
         
+        // Database madhun saglet navin messages pahaile ghena
+        const messages = await Message.find().sort({ timestamp: -1 }); 
+        res.status(200).json({ success: true, data: messages });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -56,3 +67,4 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+            
