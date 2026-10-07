@@ -2,15 +2,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-const jwt = require('jsonwebtoken'); // 🔥 NEW: JWT Security Package
+const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*' })); 
 
 const MONGO_URI = "mongodb+srv://nagareraj13_db_user:RajRNTA2026@cluster0.byxlwwd.mongodb.net/RNTA_DB?retryWrites=true&w=majority&appName=Cluster0";
-const JWT_SECRET = "RNTA_Quantum_Secret_Key_2026"; // 🔥 Backend Encryption Key
-const ADMIN_PASS = "Raj@123"; // 🔥 Password aata backend madhe safe ahe! HTML madhun gayab!
+const JWT_SECRET = "RNTA_Quantum_Secret_Key_2026"; 
+const ADMIN_PASS = "Raj@123"; 
 
 let dbErrorDetail = "Database connection is initializing... please wait.";
 
@@ -18,11 +18,13 @@ mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
     .then(() => { dbErrorDetail = null; console.log("✅ MongoDB Connected Successfully!"); })
     .catch(err => { dbErrorDetail = err.message; console.error("❌ DB Error:", err.message); });
 
+// 🔥 NEW: Database madhe 'adminReply' add kela
 const messageSchema = new mongoose.Schema({
     clientName: String,
     clientEmail: String,
     clientMobile: String, 
     message: String,
+    adminReply: { type: String, default: "" }, // 👈 Admin cha reply ithe save hoil
     timestamp: { type: Date, default: Date.now }
 });
 
@@ -36,11 +38,9 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// 🔥 1. NEW: Admin Login API (Token Generate Karnyasaathi)
 app.post('/api/admin/login', (req, res) => {
     const pass = req.body.password;
     if (pass === ADMIN_PASS || pass === "raj@123") {
-        // Password match zala ki 2 tasanchi validity aslela Token banav
         const token = jwt.sign({ role: 'superadmin' }, JWT_SECRET, { expiresIn: '2h' });
         res.status(200).json({ success: true, token: token });
     } else {
@@ -48,19 +48,17 @@ app.post('/api/admin/login', (req, res) => {
     }
 });
 
-// 🔥 2. NEW: Security Guard (Middleware) - Vina Token aat yeu denar nahi
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader) return res.status(403).json({ success: false, message: "Access Denied: No Authentication Token!" });
     
-    const token = authHeader.split(" ")[1]; // 'Bearer <token>' madhun token kadhne
+    const token = authHeader.split(" ")[1]; 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) return res.status(401).json({ success: false, message: "Access Denied: Invalid or Expired Token!" });
-        next(); // Token valid asel tarach data access hou de
+        next(); 
     });
 };
 
-// Client Kadun Message Yenyacha Route (Yala security nako karan client bina login message karto)
 app.post('/api/message', async (req, res) => {
     try {
         if (dbErrorDetail) return res.status(500).json({ success: false, message: `DB ERROR: ${dbErrorDetail}` });
@@ -79,7 +77,6 @@ app.post('/api/message', async (req, res) => {
     }
 });
 
-// 🔥 3. PROTECTED ROUTES: (Yat 'verifyToken' lavlay, mhanje fakt Admin la data disel)
 app.get('/api/messages', verifyToken, async (req, res) => {
     try {
         if (dbErrorDetail) return res.status(500).json({ success: false, message: `DB ERROR: ${dbErrorDetail}` });
@@ -90,9 +87,12 @@ app.get('/api/messages', verifyToken, async (req, res) => {
     }
 });
 
+// 🔥 NEW: Reply email ne pathvne ANI Database madhe save karne
 app.post('/api/reply', verifyToken, async (req, res) => {
     try {
-        const { clientEmail, replyMessage } = req.body;
+        const { messageId, clientEmail, replyMessage } = req.body;
+        
+        // 1. Send Email
         const mailOptions = {
             from: '"RNTA Admin (Raj Nagare)" <rajnagare46@gmail.com>',
             to: clientEmail,
@@ -100,10 +100,16 @@ app.post('/api/reply', verifyToken, async (req, res) => {
             text: `Hello,\n\nWe have received your message. Here is an update from our team:\n\n"${replyMessage}"\n\nBest Regards,\nRaj Nagare\nFounder, RNTA`
         };
         await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: "Email successfully delivered to client!" });
+
+        // 2. Save Reply to Database 👈 NEW
+        if (messageId) {
+            await Message.findByIdAndUpdate(messageId, { adminReply: replyMessage });
+        }
+
+        res.status(200).json({ success: true, message: "Email sent & Dashboard updated!" });
     } catch (error) {
         console.error("Email Error:", error);
-        res.status(500).json({ success: false, message: "Failed to send email. " + error.message });
+        res.status(500).json({ success: false, message: "Failed. " + error.message });
     }
 });
 
