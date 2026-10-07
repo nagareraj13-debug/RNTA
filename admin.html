@@ -15,7 +15,6 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         
-        /* 🔥 FIX: Removed 'display: flex' so it doesn't get short on mobile 🔥 */
         body { background-color: #050508; color: #fff; overflow-x: hidden; min-height: 100vh; }
 
         .bg-glow { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 100vw; max-width: 800px; height: 600px; background: radial-gradient(circle, rgba(0, 176, 155, 0.1) 0%, rgba(0, 242, 254, 0.05) 40%, transparent 70%); z-index: -1; filter: blur(50px); pointer-events: none; }
@@ -73,7 +72,8 @@
         .msg-reply-box { display: flex; flex-direction: column; gap: 15px; }
         textarea { width: 100%; height: 120px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 15px; color: white; outline: none; font-size: 14px; resize: none; }
         textarea:focus { border-color: #00f2fe; }
-        .btn-reply { background: #00f2fe; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+        .btn-reply { background: #00f2fe; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .btn-reply:hover { background: #00ff88; box-shadow: 0 5px 15px rgba(0,255,136,0.3); }
 
         @media (max-width: 768px) {
             .sidebar { left: -260px; }
@@ -202,149 +202,17 @@
                     <div class="msg-list" id="incomingMessages">
                         <div class="empty-state" style="margin-top: 50px;">No messages from clients via dashboard yet.</div>
                     </div>
+                    
+                    <!-- 🔥 NEW: Email Reply Box with ID's -->
                     <div class="msg-reply-box">
                         <div style="font-size: 13px; color: #888;">Select a message from the list to reply.</div>
-                        <input type="text" placeholder="To: Client Email (Auto-filled)" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;" readonly>
-                        <textarea placeholder="Type your reply here..."></textarea>
-                        <button class="btn-reply">Send Reply to Client</button>
+                        <input type="text" id="replyEmailAddress" placeholder="To: Client Email (Auto-filled)" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;" readonly>
+                        <textarea id="replyMessageText" placeholder="Type your reply here..."></textarea>
+                        <button class="btn-reply" id="sendReplyBtn" onclick="sendEmailReply()">Send Reply to Client</button>
+                        <div id="replyStatus" style="font-size: 13px; margin-top: 5px; font-weight: 600;"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- ALL JAVASCRIPT & BACKEND CONNECTION LOGIC HERE -->
-    <script>
-        function verifyAdmin() {
-            // 🔥 FIX: Added .trim() to automatically delete invisible spaces typed by mobile keyboard!
-            const passInput = document.getElementById('masterPass').value;
-            const pass = passInput.trim(); 
-            const error = document.getElementById('passError');
-            const btn = document.getElementById('authBtn');
-            
-            // Checking both Capital R and small r just in case
-            if(pass === 'Raj@123' || pass === 'raj@123') {
-                btn.innerText = "Loading...";
-                error.style.display = 'none';
-                setTimeout(() => {
-                    document.getElementById('adminLoginOverlay').style.display = 'none';
-                    document.getElementById('mainContent').style.display = 'block';
-                    fetchAdminData();
-                }, 500); // slight delay to show loading feel
-            } else {
-                error.innerText = "Incorrect Password. Access Denied.";
-                error.style.display = 'block';
-                setTimeout(() => { error.style.display = 'none'; }, 3000);
-            }
-        }
-
-        document.getElementById('masterPass').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') verifyAdmin();
-        });
-
-        function logoutAdmin() {
-            document.getElementById('masterPass').value = '';
-            document.getElementById('authBtn').innerText = "Authenticate";
-            document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('adminLoginOverlay').style.display = 'flex';
-            document.getElementById('sidebar').classList.remove('open');
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
-        function switchTab(tabId, element) {
-            const panels = document.querySelectorAll('.section-panel');
-            panels.forEach(panel => panel.classList.remove('active'));
-            
-            const links = document.querySelectorAll('.nav-link');
-            links.forEach(link => link.classList.remove('active'));
-
-            document.getElementById(tabId).classList.add('active');
-            element.classList.add('active');
-
-            const titles = {
-                'dashboard': 'Command Center',
-                'users': 'Client Database',
-                'messages': 'Client Comms & Support'
-            };
-            document.getElementById('pageTitle').innerText = titles[tabId];
-
-            if(window.innerWidth <= 768) {
-                toggleSidebar();
-            }
-        }
-
-        async function fetchAdminData() {
-            const incomingBox = document.getElementById('incomingMessages');
-            incomingBox.innerHTML = '<div class="empty-state" style="margin-top: 50px; color: #00f2fe;">Syncing with Quantum Database...</div>';
-
-            try {
-                const response = await fetch('https://rnta.onrender.com/api/messages');
-                const result = await response.json();
-                
-                if (result.success) {
-                    const msgs = result.data;
-                    document.getElementById('dbTotalMsg').innerText = msgs.length;
-                    
-                    const uniqueUsers = [];
-                    const emails = new Set();
-                    msgs.forEach(msg => {
-                        if(!emails.has(msg.clientEmail)) {
-                            emails.add(msg.clientEmail);
-                            uniqueUsers.push({
-                                name: msg.clientName,
-                                email: msg.clientEmail,
-                                mobile: msg.clientMobile || "Not Provided",
-                                date: new Date(msg.timestamp).toLocaleDateString('en-IN')
-                            });
-                        }
-                    });
-
-                    document.getElementById('dbTotalUsers').innerText = uniqueUsers.length;
-
-                    const usersTable = document.getElementById('usersTableBody');
-                    if(uniqueUsers.length > 0) {
-                        usersTable.innerHTML = '';
-                        uniqueUsers.forEach(user => {
-                            usersTable.innerHTML += `
-                            <tr>
-                                <td style="color: #00f2fe; font-weight: bold;">${user.name}</td>
-                                <td>${user.email}</td>
-                                <td>${user.mobile}</td>
-                                <td>${user.date}</td>
-                                <td><span style="color: #00ff88; background: rgba(0,255,136,0.1); padding: 3px 8px; border-radius: 10px; font-size: 11px;">Active</span></td>
-                            </tr>`;
-                        });
-                    }
-
-                    incomingBox.innerHTML = ''; 
-                    if (msgs.length === 0) {
-                        incomingBox.innerHTML = '<div class="empty-state" style="margin-top: 50px;">No messages from clients via dashboard yet.</div>';
-                        return;
-                    }
-
-                    msgs.forEach(msg => {
-                        const date = new Date(msg.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-                        incomingBox.innerHTML += `
-                        <div style="padding: 15px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <div>
-                                    <strong style="color: #00f2fe; font-size: 16px;">${msg.clientName}</strong><br>
-                                    <span style="font-size: 11px; color: #888;">${msg.clientEmail} | ${msg.clientMobile || 'Not Provided'}</span>
-                                </div>
-                                <span style="font-size: 11px; color: #00ff88; background: rgba(0,255,136,0.1); padding: 3px 8px; border-radius: 10px;">${date}</span>
-                            </div>
-                            <p style="font-size: 14px; color: #fff; line-height: 1.5; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);">${msg.message}</p>
-                        </div>`;
-                    });
-                }
-                        } catch (error) {
-                console.error("Error fetching data:", error);
-                incomingBox.innerHTML = '<div class="empty-state" style="color: #ff4757; margin-top: 50px;">Failed to connect to backend database. Is Render server awake?</div>';
-            }
-        }
-    </script>
-</body>
-</html>
+    
