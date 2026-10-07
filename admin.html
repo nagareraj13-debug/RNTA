@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 🔥 Mobile Browser Theme Color & App Install Tags 🔥 -->
     <meta name="theme-color" content="#050508">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RNTA Admin">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo.png">
+
     <title>RNTA Admin Control</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
@@ -125,7 +132,6 @@
     <div class="main-content" id="mainContent">
         
         <div class="topbar">
-            <!-- Hamburger Menu -->
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
             <h1 id="pageTitle">Command Center</h1>
             <div class="admin-profile">
@@ -232,7 +238,6 @@
             if(pass === 'Raj@123') {
                 document.getElementById('adminLoginOverlay').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
-                // Fetch LIVE data from database instantly on login!
                 fetchAdminData();
             } else {
                 error.style.display = 'block';
@@ -251,13 +256,10 @@
             document.getElementById('sidebar').classList.remove('open');
         }
 
-        // --- Mobile Sidebar Toggle ---
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
+            document.getElementById('sidebar').classList.toggle('open');
         }
 
-        // --- Tab Switching Logic ---
         function switchTab(tabId, element) {
             const panels = document.querySelectorAll('.section-panel');
             panels.forEach(panel => panel.classList.remove('active'));
@@ -291,27 +293,55 @@
                 
                 if (result.success) {
                     const msgs = result.data;
-                    
-                    // Dashboard numbers update
                     document.getElementById('dbTotalMsg').innerText = msgs.length;
-                    document.getElementById('dbTotalUsers').innerText = msgs.length; 
                     
+                    // 🔥 Unique Users Logic for Client Database Table 🔥
+                    const uniqueUsers = [];
+                    const emails = new Set();
+                    msgs.forEach(msg => {
+                        if(!emails.has(msg.clientEmail)) {
+                            emails.add(msg.clientEmail);
+                            uniqueUsers.push({
+                                name: msg.clientName,
+                                email: msg.clientEmail,
+                                mobile: msg.clientMobile || "Not Provided",
+                                date: new Date(msg.timestamp).toLocaleDateString('en-IN')
+                            });
+                        }
+                    });
+
+                    document.getElementById('dbTotalUsers').innerText = uniqueUsers.length;
+
+                    const usersTable = document.getElementById('usersTableBody');
+                    if(uniqueUsers.length > 0) {
+                        usersTable.innerHTML = '';
+                        uniqueUsers.forEach(user => {
+                            usersTable.innerHTML += `
+                            <tr>
+                                <td style="color: #00f2fe; font-weight: bold;">${user.name}</td>
+                                <td>${user.email}</td>
+                                <td>${user.mobile}</td>
+                                <td>${user.date}</td>
+                                <td><span style="color: #00ff88; background: rgba(0,255,136,0.1); padding: 3px 8px; border-radius: 10px; font-size: 11px;">Active</span></td>
+                            </tr>`;
+                        });
+                    }
+
                     incomingBox.innerHTML = ''; 
-                    
                     if (msgs.length === 0) {
                         incomingBox.innerHTML = '<div class="empty-state" style="margin-top: 50px;">No messages from clients via dashboard yet.</div>';
                         return;
                     }
 
-                    // Loop through database messages and display them
+                    / Loop through database messages and display them (with Mobile Number)
                     msgs.forEach(msg => {
                         const date = new Date(msg.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
                         incomingBox.innerHTML += `
-                        <div style="padding: 15px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px; margin-bottom: 15px; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+                        <div style="padding: 15px; background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <div>
                                     <strong style="color: #00f2fe; font-size: 16px;">${msg.clientName}</strong><br>
-                                    <span style="font-size: 11px; color: #888;">${msg.clientEmail}</span>
+                                    <span style="font-size: 11px; color: #888;">${msg.clientEmail} | ${msg.clientMobile || 'Not Provided'}</span>
                                 </div>
                                 <span style="font-size: 11px; color: #00ff88; background: rgba(0,255,136,0.1); padding: 3px 8px; border-radius: 10px;">${date}</span>
                             </div>
